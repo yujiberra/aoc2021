@@ -28,4 +28,8 @@ path = "src/c03.rs"
 name = "c11"
 path = "src/c11.rs"
 
+[[bin]]
+name = "c11a"
+path = "src/c11a.rs"
+
 [dependencies]
