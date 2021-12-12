@@ -18,7 +18,7 @@ use std::{io::{self, BufRead}, collections::HashSet};
 //     return true;
 // }
 
-fn get_paths<'a>(path_so_far: Vec<&'a str>, visited_caves: HashSet<String>, edges: &'a Vec<(String, String)>) -> Vec<Vec<&'a str>> {
+fn get_paths<'a>(path_so_far: Vec<&'a str>, visited_caves: &HashSet<String>, edges: &'a Vec<(String, String)>) -> Vec<Vec<&'a str>> {
     let current = path_so_far[path_so_far.len() - 1];
     // println!("current = {}", current);
     if current == "end" {
@@ -35,7 +35,7 @@ fn get_paths<'a>(path_so_far: Vec<&'a str>, visited_caves: HashSet<String>, edge
                 let mut new_visited = visited_caves.clone();
                 new_visited.insert(edge.1.to_string()); 
                 // println!("trying path {:?}", new_path);
-                paths.append(&mut get_paths(new_path, new_visited, edges));
+                paths.append(&mut get_paths(new_path, &new_visited, edges));
             }
         }
         return paths;
@@ -62,7 +62,7 @@ fn main() {
 
     println!("edges {:?}", edges);
 
-    let paths = get_paths(vec!["start"], HashSet::from(["start".to_string()]), &edges);
+    let paths = get_paths(vec!["start"], &HashSet::from(["start".to_string()]), &edges);
     // println!("Paths found: {:?}", paths);
     println!("Total paths: {}", paths.len());
     // let foo: &Vec<&str> = paths.iter().filter(|p| max_one_small_cave(p.to_vec())).collect();
