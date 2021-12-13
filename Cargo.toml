@@ -37,6 +37,10 @@ name = "c06a"
 path = "src/c06a.rs"
 
 [[bin]]
+name = "c09"
+path = "src/c09.rs"
+
+[[bin]]
 name = "c10"
 path = "src/c10.rs"
 
