@@ -85,49 +85,22 @@ fn split(number: SNum) -> (SNum, bool) {
 
 fn explode(number: SNum) -> (SNum, bool) {
     let result = explode_recurse(number, Some(0), (0, 0));
-    match result.2 {
-        (0, 0) => (),
-        _ => println!("Unused explosion output: {:?}", result.2)
-    }
+    // match result.2 {
+    //     (0, 0) => (),
+    //     _ => println!("Unused explosion output: {:?}", result.2)
+    // }
     return (result.0, result.1); 
 }
 
 fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64)) -> (SNum, bool, (u64, u64)) {
     match depth {
-        Some(3) => {
-            // println!("Depth 4!");
-            // println!("Number = {:?}", number);
+        Some(4) => {
             match number {
                 SNum::Pair(left_num, right_num) => {
-                    // left number explodes
-                    // let both_sides = (*left_num, *right_num);
-                    if let SNum::Pair(ll, lr) = *left_num {
-                        // TODO: make right side just any SNum and use recursion
-                        if let (SNum::Entry(ll_num), SNum::Entry(lr_num)) =  (*ll, *lr) {
-                            let new_left = 0;
-                            let new_right = explode_recurse(*right_num, None, (lr_num, 0)).0;
-                            return (SNum::Pair(Box::new(SNum::Entry(new_left)), 
-                                               Box::new(new_right)), 
-                                    true,
-                                    (ll_num, 0));
-                        } else {
-                            panic!("Found pair nested more than 4 deep");
-                        }
-                    // right number explodes
-                    } else if let SNum::Pair(rl, rr) = *right_num {
-                        if let (SNum::Entry(rl_num), SNum::Entry(rr_num)) =  (*rl, *rr) {
-                            let new_left = explode_recurse(*left_num, None, (0, rl_num)).0;
-                            let new_right = 0;
-                            return (SNum::Pair(Box::new(new_left),
-                                               Box::new(SNum::Entry(new_right))), 
-                                    true,
-                                    (0, rr_num));
-                        } else {
-                            panic!("Found pair nested more than 4 deep");
-                        }
+                    if let (SNum::Entry(left_value), SNum::Entry(right_value)) =  (*left_num, *right_num) {
+                        return (SNum::Entry(0), true, (left_value, right_value));
                     } else {
-                        return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), false, (0, 0));
-                        // return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), None);
+                        panic!("Found pair nested more than 4 deep");
                     }
                 },
                 _ => return (number, false, (0, 0))
@@ -189,7 +162,6 @@ fn main() {
     for line in stdin.lock().lines() {
         lines.push(line.unwrap());
     }
-    println!("Got {} lines", lines.len());
     for i in 0..lines.len() {
         for j in i+1..lines.len() {
             let sum = magnitude(&reduce(add(parse(&lines[i]), parse(&lines[j]))));
