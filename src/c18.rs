@@ -36,6 +36,53 @@ fn parse_recurse<I: Iterator<Item = char>>(input: &mut Peekable<I>) -> SNum {
     SNum::Entry(3)
 }
 
+fn reduce(number: SNum) -> SNum {
+    let mut current_number = number;
+    let mut keep_looping = true;
+    while keep_looping {
+        keep_looping = false;
+        let mut keep_exploding = true;
+        while keep_exploding {
+            let explosion_result = explode(current_number);
+            current_number = explosion_result.0;
+            keep_exploding = explosion_result.1;
+            keep_looping = keep_looping || explosion_result.1;
+        }
+        let split_result = split(current_number);
+        current_number = split_result.0;
+        keep_looping = keep_looping || split_result.1;
+    }
+    return current_number;
+}
+
+fn split(number: SNum) -> (SNum, bool) {
+    match number {
+        SNum::Pair(left_num, right_num) => {
+            let (left_num, split_happened) = split(*left_num);
+            if split_happened {
+                return (SNum::Pair(Box::new(left_num),
+                                   Box::new(*right_num)),
+                        true);
+            } else {
+                let (right_num, split_happened) = split(*right_num);
+                return (SNum::Pair(Box::new(left_num),
+                                   Box::new(right_num)),
+                        split_happened);
+            }
+        }, 
+        SNum::Entry(num) => {
+            if num >= 10 {
+                let half = (num as f64) / 2.0;
+                return (SNum::Pair(Box::new(SNum::Entry(half.floor() as u64)),
+                                   Box::new(SNum::Entry(half.ceil() as u64))),
+                        true);
+            } else {
+                return (number, false);
+            }
+        }
+    }
+}
+
 fn explode(number: SNum) -> (SNum, bool) {
     let result = explode_recurse(number, Some(0), (0, 0));
     match result.2 {
@@ -138,6 +185,6 @@ fn main() {
         let number = parse(&line);
         println!("{:?}", number);
         println!("magnitude = {}", magnitude(&number));
-        println!("explode once = {:?}", explode(number));
+        println!("reduce = {:?}", reduce(number));
     }
 }
