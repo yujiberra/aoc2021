@@ -51,20 +51,20 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
             match number {
                 SNum::Pair(left_num, right_num) => {
                     // left number explodes
-                    let both_sides = (*left_num, *right_num);
-                    if let (SNum::Pair(ll, lr), SNum::Entry(r)) = both_sides {
+                    // let both_sides = (*left_num, *right_num);
+                    if let SNum::Pair(ll, lr) = *left_num {
                         // TODO: make right side just any SNum and use recursion
                         if let (SNum::Entry(ll_num), SNum::Entry(lr_num)) =  (*ll, *lr) {
                             let new_left = 0;
-                            let new_right = lr_num + r;
+                            let new_right = explode_recurse(*right_num, None, (lr_num, 0)).0;
                             return (SNum::Pair(Box::new(SNum::Entry(new_left)), 
-                                               Box::new(SNum::Entry(new_right))), 
+                                               Box::new(new_right)), 
                                     Some((ll_num, 0)));
                         } else {
                             panic!("Found pair nested more than 4 deep");
                         }
                     // right number explodes
-                    } else if let (SNum::Entry(l), SNum::Pair(rl, rr)) = both_sides {
+                    } else if let (SNum::Entry(l), SNum::Pair(rl, rr)) = (*left_num, *right_num) {
                         if let (SNum::Entry(rl_num), SNum::Entry(rr_num)) =  (*rl, *rr) {
                             let new_left = l + rl_num;
                             let new_right = 0;
@@ -75,7 +75,8 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
                             panic!("Found pair nested more than 4 deep");
                         }
                     } else {
-                        return (SNum::Pair(Box::new(both_sides.0), Box::new(both_sides.1)), None);
+                        return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), None);
+                        // return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), None);
                     }
                 },
                 _ => return (number, None)
