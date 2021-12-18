@@ -172,6 +172,10 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
     }
 }
 
+fn add(first: SNum, second: SNum) -> SNum {
+    return SNum::Pair(Box::new(first), Box::new(second));
+}
+
 fn magnitude(number: &SNum) -> u64 {
     match number {
         SNum::Entry(num) => *num,
@@ -180,11 +184,11 @@ fn magnitude(number: &SNum) -> u64 {
 }
 fn main() {
     let stdin = io::stdin();
-    loop {
-        let line = stdin.lock().lines().next().unwrap().unwrap();
-        let number = parse(&line);
-        println!("{:?}", number);
-        println!("magnitude = {}", magnitude(&number));
-        println!("reduce = {:?}", reduce(number));
+    let mut lines = stdin.lock().lines();
+    let mut sum = parse(&lines.next().unwrap().unwrap());
+    for line in lines {
+        sum = reduce(add(sum, parse(&line.unwrap())));
     }
+    println!("{:?}", sum);
+    println!("magnitude = {}", magnitude(&sum));
 }
