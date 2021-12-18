@@ -92,4 +92,8 @@ path = "src/c15.rs"
 name = "c15a"
 path = "src/c15a.rs"
 
+[[bin]]
+name = "c17a"
+path = "src/c17a.rs"
+
 [dependencies]
