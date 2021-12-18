@@ -1,6 +1,7 @@
 use std::{io::{self, BufRead}, collections::HashSet};
 
-fn basin(point: (u8, u8), found: &mut HashSet<(u8, u8)>, map: &Vec<Vec<u8>>, height: usize, width: usize) {
+fn basin(point: (u8, u8), found: HashSet<(u8, u8)>, map: &Vec<Vec<u8>>, height: usize, width: usize) -> HashSet<(u8, u8)> {
+    let mut found = found;
     for pp in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
         let i = point.0 as i16 + pp.0;
         let j = point.1 as i16 + pp.1;
@@ -13,9 +14,10 @@ fn basin(point: (u8, u8), found: &mut HashSet<(u8, u8)>, map: &Vec<Vec<u8>>, hei
         let candidate = (i as u8, j as u8);
         if map[i as usize][j as usize] < 9 && !found.contains(&candidate) {
             found.insert(candidate);
-            basin(candidate, found, map, height, width);
+            found = basin(candidate, found, map, height, width);
         }
     }
+    return found;
 }
 
 fn main() {
@@ -67,7 +69,7 @@ fn main() {
     
     for point in low_points {
         let mut basin_points = HashSet::from([point]);
-        basin(point, &mut basin_points, &map, height, width);
+        basin_points = basin(point, basin_points, &map, height, width);
         basin_sizes.push(basin_points.len());
     }
 
