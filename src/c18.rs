@@ -36,20 +36,20 @@ fn parse_recurse<I: Iterator<Item = char>>(input: &mut Peekable<I>) -> SNum {
     SNum::Entry(3)
 }
 
-fn explode(number: SNum) -> SNum {
+fn explode(number: SNum) -> (SNum, bool) {
     let result = explode_recurse(number, Some(0), (0, 0));
-    if result.1.is_some() {
-        println!("result.1 is some; this shouldn't happen!?");
-        // panic!();
+    match result.2 {
+        (0, 0) => (),
+        _ => println!("Unused explosion output: {:?}", result.2)
     }
-    return result.0; 
+    return (result.0, result.1); 
 }
 
-fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64)) -> (SNum, Option<(u64, u64)>) {
+fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64)) -> (SNum, bool, (u64, u64)) {
     match depth {
         Some(3) => {
-            println!("Depth 4!");
-            println!("Number = {:?}", number);
+            // println!("Depth 4!");
+            // println!("Number = {:?}", number);
             match number {
                 SNum::Pair(left_num, right_num) => {
                     // left number explodes
@@ -61,7 +61,8 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
                             let new_right = explode_recurse(*right_num, None, (lr_num, 0)).0;
                             return (SNum::Pair(Box::new(SNum::Entry(new_left)), 
                                                Box::new(new_right)), 
-                                    Some((ll_num, 0)));
+                                    true,
+                                    (ll_num, 0));
                         } else {
                             panic!("Found pair nested more than 4 deep");
                         }
@@ -72,39 +73,40 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
                             let new_right = 0;
                             return (SNum::Pair(Box::new(new_left),
                                                Box::new(SNum::Entry(new_right))), 
-                                    Some((0, rr_num)) );
+                                    true,
+                                    (0, rr_num));
                         } else {
                             panic!("Found pair nested more than 4 deep");
                         }
                     } else {
-                        return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), None);
+                        return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), false, (0, 0));
                         // return (SNum::Pair(Box::new(*left_num), Box::new(*right_num)), None);
                     }
                 },
-                _ => return (number, None)
+                _ => return (number, false, (0, 0))
             }
         }, 
         Some(n) => {
             match number {
                 SNum::Pair(left_num, right_num) => {
-                    let (left_result_num, left_explosion) = explode_recurse(*left_num, Some(n+1), (0, 0));
+                    let (left_result_num, explosion_happened, left_explosion) = explode_recurse(*left_num, Some(n+1), (0, 0));
                     // left side exploded
-                    if let Some((explosion_ll, explosion_lr)) = left_explosion {
-                        let (right_result_num, _) = explode_recurse(*right_num, None, (explosion_lr, 0));
-                        return (SNum::Pair(Box::new(left_result_num), Box::new(right_result_num)), Some((explosion_ll, 0)));
+                    if explosion_happened {
+                        let (right_result_num, _, _) = explode_recurse(*right_num, None, (left_explosion.1, 0));
+                        return (SNum::Pair(Box::new(left_result_num), Box::new(right_result_num)), true, (left_explosion.0, 0));
                     } else {
-                        let (right_result_num, right_explosion) = explode_recurse(*right_num, Some(n+1), (0, 0));
+                        let (right_result_num, explosion_happened, right_explosion) = explode_recurse(*right_num, Some(n+1), (0, 0));
                         // right side exploded
-                        if let Some((explosion_rl, explosion_rr)) = right_explosion {
-                            let (new_left_result_num, _) =  explode_recurse(left_result_num, None, (0, explosion_rl));
-                            return (SNum::Pair(Box::new(new_left_result_num), Box::new(right_result_num)), Some((0, explosion_rr)));
+                        if explosion_happened {
+                            let (new_left_result_num, _, _) =  explode_recurse(left_result_num, None, (0, right_explosion.0));
+                            return (SNum::Pair(Box::new(new_left_result_num), Box::new(right_result_num)), true, (0, right_explosion.1));
                         // no internal explosions
                         } else {
-                            return (SNum::Pair(Box::new(left_result_num), Box::new(right_result_num)), None);
+                            return (SNum::Pair(Box::new(left_result_num), Box::new(right_result_num)), false, (0, 0));
                         }
                     }
                 },
-                _ => return (number, None)
+                _ => return (number, false, (0, 0))
             }
         },
         None => {
@@ -112,42 +114,15 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
                 SNum::Pair(left_num, right_num) => {
                     return (SNum::Pair(Box::new(explode_recurse(*left_num, None, (explosion_input.0, 0)).0),
                                        Box::new(explode_recurse(*right_num, None, (0, explosion_input.1)).0)),
-                            None);
+                            false,
+                            (0, 0));
                 }, 
                 SNum::Entry(num) => {
-                    return (SNum::Entry(num + explosion_input.0 + explosion_input.1), None);
+                    return (SNum::Entry(num + explosion_input.0 + explosion_input.1), false, (0, 0));
                 }
             }
         }
     }
-    // match number {
-    //     //i think this value is supposed to *come* from the left but i'm not sure
-    //     SNum::Entry(num) => return (SNum::Entry(*num + left_value), None), 
-    //     SNum::Pair(first, second) => {
-    //         if depth == 3 {
-    //             let left_num = match **first {
-    //                 SNum::Pair(_,_) => panic!(),
-    //                 SNum::Entry(num) => num,
-    //             }; 
-    //             let right_num = match **second {
-    //                 SNum::Pair(_,_) => panic!(),
-    //                 SNum::Entry(num) => num,
-    //             }; 
-    //             return (SNum::Entry(0), Some((left_num, right_num)));
-    //         } else {
-    //             let (left_number, left_explosion) = explode_recurse(first, depth+1);
-    //             if left_explosion.is_none() {
-
-    //             } else {
-    //                 return SNum::Pair()
-
-    //             }
-
-    //             return SNum::Pair(, explode_recurse(second, depth+1))
-    //         }
-    //     },
-    // }
-
 }
 
 fn magnitude(number: &SNum) -> u64 {
