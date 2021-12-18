@@ -39,15 +39,17 @@ fn parse_recurse<I: Iterator<Item = char>>(input: &mut Peekable<I>) -> SNum {
 fn explode(number: SNum) -> SNum {
     let result = explode_recurse(number, Some(0), (0, 0));
     if result.1.is_some() {
-        panic!();
+        println!("result.1 is some; this shouldn't happen!?");
+        // panic!();
     }
     return result.0; 
 }
 
 fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64)) -> (SNum, Option<(u64, u64)>) {
     match depth {
-        Some(4) => {
+        Some(3) => {
             println!("Depth 4!");
+            println!("Number = {:?}", number);
             match number {
                 SNum::Pair(left_num, right_num) => {
                     // left number explodes
@@ -64,11 +66,11 @@ fn explode_recurse(number: SNum, depth: Option<u8>, explosion_input: (u64, u64))
                             panic!("Found pair nested more than 4 deep");
                         }
                     // right number explodes
-                    } else if let (SNum::Entry(l), SNum::Pair(rl, rr)) = (*left_num, *right_num) {
+                    } else if let SNum::Pair(rl, rr) = *right_num {
                         if let (SNum::Entry(rl_num), SNum::Entry(rr_num)) =  (*rl, *rr) {
-                            let new_left = l + rl_num;
+                            let new_left = explode_recurse(*left_num, None, (0, rl_num)).0;
                             let new_right = 0;
-                            return (SNum::Pair(Box::new(SNum::Entry(new_left)),
+                            return (SNum::Pair(Box::new(new_left),
                                                Box::new(SNum::Entry(new_right))), 
                                     Some((0, rr_num)) );
                         } else {
