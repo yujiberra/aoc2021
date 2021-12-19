@@ -20,17 +20,28 @@ impl Line {
         return self.is_horizontal() || self.is_vertical();
     }
 
+    fn vertical_overlap(&self, other: Line) -> (i32, i32) {
+        let lower = cmp::max(cmp::min(self.0.1, self.1.1), cmp::min(other.0.1, other.1.1));
+        let higher = cmp::min(cmp::max(self.0.1, self.1.1), cmp::max(other.0.1, other.1.1));
+        return (lower, higher);
+    }
+
+    fn horizontal_overlap(&self, other: Line) -> (i32, i32) {
+        let lower = cmp::max(cmp::min(self.0.0, self.1.0), cmp::min(other.0.0, other.1.0));
+        let higher = cmp::min(cmp::max(self.0.0, self.1.0), cmp::max(other.0.0, other.1.0));
+        return (lower, higher);
+    }
+
     fn intersection(&self, other: Line) -> Vec<Point> {
-        println!("checking intersection of {:?} and {:?}", self, &other);
+        // println!("checking intersection of {:?} and {:?}", self, &other);
         if self.is_horizontal() && other.is_vertical() {
             return orthogonal_intersection(self, &other);
         } else if self.is_vertical() && other.is_horizontal() {
             return orthogonal_intersection(&other, self);
         } else if self.is_vertical() && self.0.0 == other.0.0 {
-            println!("Double vertical");
+            // println!("Double vertical");
             let mut intersection = Vec::new();
-            let lower = cmp::max(cmp::min(self.0.1, self.1.1), cmp::min(other.0.1, other.1.1));
-            let higher = cmp::min(cmp::max(self.0.1, self.1.1), cmp::max(other.0.1, other.1.1));
+            let (lower, higher) = self.vertical_overlap(other);
             if lower <= higher {
                 for i in lower..higher+1 {
                     intersection.push((self.0.0, i));
@@ -38,10 +49,9 @@ impl Line {
             }
             return intersection;
         } else if self.is_horizontal() && self.0.1 == other.0.1 {
-            println!("Double horizontal");
+            // println!("Double horizontal");
             let mut intersection = Vec::new();
-            let lower = cmp::max(cmp::min(self.0.0, self.1.0), cmp::min(other.0.0, other.1.0));
-            let higher = cmp::min(cmp::max(self.0.0, self.1.0), cmp::max(other.0.0, other.1.0));
+            let (lower, higher) = self.horizontal_overlap(other);
             if lower <= higher {
                 for i in lower..higher+1 {
                     intersection.push((i, self.0.1));
@@ -49,12 +59,6 @@ impl Line {
             }
             return intersection;
         } 
-        // println!("horizontal = {:?}", horizontal);
-        // println!("vertical = {:?}", vertical);
-        // println!("{} >= {}, {} <= {}, {} >= {}, {} <= {}", horizontal.0.1, cmp::min(vertical.0.1, vertical.1.1), 
-        //     horizontal.0.1, cmp::max(vertical.0.1, vertical.1.1),
-        //     vertical.0.0, cmp::min(horizontal.0.0, horizontal.1.0),
-        //     vertical.0.0, cmp::max(horizontal.0.0, horizontal.1.0));
         return Vec::new();
     }
 }
@@ -90,7 +94,7 @@ fn main() {
         .map(|l| l.to_owned())
         .collect();
 
-    println!("Orthogonal lines: {:?}", orthogonal);
+    // println!("Orthogonal lines: {:?}", orthogonal);
 
     let mut intersections = HashSet::new();
     for i in 0..orthogonal.len() {
@@ -101,7 +105,7 @@ fn main() {
         }
     }
 
-    println!("Intersections: {:?}", intersections);
+    // println!("Intersections: {:?}", intersections);
     println!("Count: {:?}", intersections.len());
 
 }
