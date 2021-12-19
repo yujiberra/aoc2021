@@ -89,6 +89,10 @@ name = "c14"
 path = "src/c14.rs"
 
 [[bin]]
+name = "c14a"
+path = "src/c14a.rs"
+
+[[bin]]
 name = "c15"
 path = "src/c15.rs"
 
@@ -109,3 +113,4 @@ name = "c18a"
 path = "src/c18a.rs"
 
 [dependencies]
+num-traits = "0.2"
